@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta name="theme-color" content="#0f766e">
+  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapeamento de Sala de Aula - EEMTI José Cláudio</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #f4f7f6; color: #333; display: flex; flex-direction: column; min-height: 100vh; margin: 0; position: relative; }
+    .watermark-bg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50vw; max-width: 550px; opacity: 0.08; z-index: -1; pointer-events: none; mix-blend-mode: multiply; }
+    .navbar-custom { background-color: rgba(255, 255, 255, 0.96); padding: 15px 20px; border-bottom: 1px solid rgba(0, 0, 0, 0.05); }
+    .navbar-brand { font-weight: 700; font-size: 1.5rem; color: #1e293b !important; display: flex; align-items: center; gap: 15px; }
+    .sub-text { font-size: 0.8rem; font-weight: 500; color: #64748b; margin-top: -3px; }
+    .logo-escola { height: 55px; object-fit: contain; mix-blend-mode: multiply; }
+    .main-container { padding: 25px 15px 40px 15px; max-width: 1440px; margin: 0 auto; width: 100%; flex: 1; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); margin-bottom: 24px; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(5px); }
+    .card-header-custom { border-bottom: 1px solid #eaeaea; padding-bottom: 14px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .form-label { font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; }
+    .form-control, .form-select { border-radius: 8px; border: 1px solid #ced4da; padding: 8px 12px; font-size: 0.88rem; }
+    .form-control:focus, .form-select:focus { border-color: #0f766e; box-shadow: 0 0 0 0.2rem rgba(15, 118, 110, 0.15); }
+    .btn-tema { background-color: #0f766e; color: white; border: none; font-weight: 600; border-radius: 8px; }
+    .btn-tema:hover { background-color: #0d645e; color: white; }
+    .frente-sala-bar { background: linear-gradient(90deg, #1e293b 0%, #334155 100%); color: #ffffff; border-radius: 10px; padding: 10px 24px; margin: 0 auto 22px auto; max-width: 750px; text-align: center; font-weight: 700; font-size: 0.9rem; letter-spacing: 0.8px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); border-bottom: 4px solid #0f766e; }
+    .sala-scroll-wrapper { overflow-x: auto; padding-bottom: 12px; }
+    .grid-mapeamento { display: grid; gap: 14px; min-width: 850px; }
+    .header-fila { background: #0f766e; color: #ffffff; font-weight: 700; font-size: 0.82rem; text-align: center; padding: 8px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .carteira-card { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; transition: all 0.2s ease; position: relative; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03); }
+    .carteira-card.ocupada { border-color: #0f766e; background: #f0fdf4; box-shadow: 0 4px 12px rgba(15, 118, 110, 0.10); }
+    .carteira-badge-pos { position: absolute; top: 6px; left: 8px; font-size: 0.68rem; font-weight: 800; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 5px; border: 1px solid #cbd5e1; }
+    .carteira-card.ocupada .carteira-badge-pos { background: #0f766e; color: #ffffff; border-color: #0f766e; }
+    .btn-limpar-assento { position: absolute; top: 5px; right: 6px; border: none; background: #fee2e2; color: #dc2626; width: 22px; height: 22px; border-radius: 50%; font-size: 0.7rem; display: none; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+    .carteira-card.ocupada .btn-limpar-assento { display: flex; }
+    .btn-limpar-assento:hover { background: #dc2626; color: #ffffff; }
+    .moldura-3x4 { width: 78px; height: 104px; border-radius: 6px; border: 2px dashed #cbd5e1; background-color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; margin-top: 14px; margin-bottom: 8px; position: relative; }
+    .carteira-card.ocupada .moldura-3x4 { border: 2px solid #0f766e; background-color: #ffffff; }
+    .moldura-3x4 img { width: 100%; height: 100%; object-fit: cover; }
+    .placeholder-3x4 { text-align: center; color: #94a3b8; font-size: 0.68rem; line-height: 1.1; padding: 4px; }
+    .placeholder-3x4 i { font-size: 1.6rem; display: block; margin-bottom: 2px; color: #cbd5e1; }
+    .select-aluno-carteira { width: 100%; font-size: 0.75rem; font-weight: 600; padding: 5px 6px; border-radius: 6px; border: 1px solid #cbd5e1; background-color: #ffffff; color: #1e293b; text-overflow: ellipsis; }
+    .carteira-card.ocupada .select-aluno-carteira { border-color: #0f766e; color: #0f766e; font-weight: 700; }
+    .nome-aluno-leitura { width: 100%; text-align: center; font-size: 0.74rem; font-weight: 700; color: #0f766e; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 5px 4px; min-height: 30px; display: flex; align-items: center; justify-content: center; line-height: 1.15; }
+    .table th { background-color: #f8fafc; border-bottom: 2px solid #e2e8f0; color: #475569; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; }
+    .footer-custom { text-align: center; padding: 20px; font-size: 0.85rem; color: #64748b; border-top: 1px solid rgba(0, 0, 0, 0.05); background: rgba(255, 255, 255, 0.8); }
+  </style>
+  <script>
+    const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado') || 'null');
+    if (!usuarioLogado) window.location.href = 'login.html';
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+</head>
+<body>
+  <img src="LOGO-removebg-preview.png" class="watermark-bg" alt="" onerror="this.style.display='none'">
+  <nav class="navbar navbar-custom">
+    <div class="container-fluid max-w-1440 mx-auto">
+      <span class="navbar-brand">
+        <img src="LOGO-removebg-preview.png" class="logo-escola" alt="Brasão" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2941/2941658.png'">
+        <div>
+          Mapeamento de Sala de Aula
+          <div class="sub-text">EEMTI José Cláudio</div>
+        </div>
+      </span>
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2" id="statusConexaoBadge">
+          <i class="bi bi-wifi me-1"></i>Online
+        </span>
+        <span class="text-muted fw-semibold small d-none d-md-block" id="nomeUsuarioUi">
+          <i class="bi bi-person-circle me-1"></i>A carregar...
+        </span>
+        <a href="index.html" class="btn btn-outline-secondary btn-sm fw-semibold rounded-pill px-3 shadow-sm">
+          <i class="bi bi-house-door-fill me-1"></i> Início
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-container">
+    <ul class="nav nav-tabs mb-4" id="mapeamentoTabs" role="tablist">
+      <li class="nav-item" role="presentation" id="navItemCriarMapa">
+        <button class="nav-link active fw-bold text-dark" id="tab-criar-btn" data-bs-toggle="tab" data-bs-target="#abaCriarMapa" type="button" role="tab">
+          <i class="bi bi-grid-3x3-gap-fill text-primary me-2"></i>Criar / Editar Mapeamento (Exclusivo PDT)
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link fw-bold text-dark" id="tab-salvos-btn" data-bs-toggle="tab" data-bs-target="#abaMapeamentosSalvos" type="button" role="tab" onclick="renderizarTabelaMapeamentosSalvos()">
+          <i class="bi bi-folder-check text-success me-2"></i>Mapeamentos Salvos (Consulta Todos os Professores)
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- ABA 1: CRIAR / EDITAR MAPEAMENTO -->
+      <div class="tab-pane fade show active" id="abaCriarMapa" role="tabpanel">
+        <div class="card p-5 text-center" id="cardBloqueioNaoPdt" style="display: none;">
+          <i class="bi bi-shield-lock-fill display-4 text-warning mb-3"></i>
+          <h4 class="fw-bold text-dark">Acesso de Edição Exclusivo para PDT</h4>
+          <p class="text-muted mx-auto" style="max-width: 600px;">
+            Olá, <b id="lblNomeProfBloqueio">Professor(a)</b>! A montagem e alteração do mapeamento de sala fica disponível apenas para o <b>Professor Diretor de Turma (PDT)</b> vinculado à série.
+          </p>
+          <div class="mt-2">
+            <button class="btn btn-tema px-4 py-2" onclick="irParaAbaSalvos()">
+              <i class="bi bi-eye-fill me-2"></i>Ver Mapeamentos Salvos das Turmas
+            </button>
+          </div>
+        </div>
+
+        <div id="areaEdicaoPdt">
+          <div class="card p-4">
+            <div class="card-header-custom">
+              <div>
+                <h5 class="fw-bold m-0 text-dark">
+                  <i class="bi bi-sliders text-primary me-2"></i>1. Configurar Turma, PDT e Dimensões da Sala
+                </h5>
+                <small class="text-muted" id="textoAjudaPdt">Turma e PDT preenchidos automaticamente de acordo com o seu vínculo.</small>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-light text-dark border px-3 py-2" id="contadorAlocados">0 / 0 Alunos Alocados</span>
+                <button class="btn btn-outline-danger btn-sm fw-bold" id="btnLimparTudo" onclick="limparMapeamentoInteiro()" style="display:none;">
+                  <i class="bi bi-trash3 me-1"></i>Limpar Lugares
+                </button>
+              </div>
+            </div>
+
+            <div class="row g-3 align-items-end">
+              <div class="col-12 col-sm-6 col-md-3">
+                <label class="form-label">Série / Turma</label>
+                <select id="selectSerie" class="form-select" onchange="aoSelecionarSerie()">
+                  <option value="">Carregando séries...</option>
+                </select>
+              </div>
+
+              <div class="col-12 col-sm-6 col-md-3">
+                <label class="form-label">Professor Diretor de Turma (PDT)</label>
+                <input type="text" id="inputPdtAuto" class="form-control bg-light fw-bold text-success" readonly placeholder="Preenchimento automático...">
+              </div>
+
+              <div class="col-6 col-sm-4 col-md-2">
+                <label class="form-label">Filas (Colunas)</label>
+                <select id="selectColunas" class="form-select" onchange="gerarGradeMapeamento(true)">
+                  <option value="3">3 Filas</option>
+                  <option value="4">4 Filas</option>
+                  <option value="5" selected>5 Filas (Padrão)</option>
+                  <option value="6">6 Filas</option>
+                  <option value="7">7 Filas</option>
+                  <option value="8">8 Filas</option>
+                </select>
+              </div>
+
+              <div class="col-6 col-sm-4 col-md-2">
+                <label class="form-label">Carteiras por Fila</label>
+                <select id="selectLinhas" class="form-select" onchange="gerarGradeMapeamento(true)">
+                  <option value="4">4 Carteiras</option>
+                  <option value="5">5 Carteiras</option>
+                  <option value="6">6 Carteiras</option>
+                  <option value="7" selected>7 Carteiras</option>
+                  <option value="8">8 Carteiras</option>
+                  <option value="9">9 Carteiras</option>
+                  <option value="10">10 Carteiras</option>
+                </select>
+              </div>
+
+              <div class="col-12 col-sm-4 col-md-2 d-grid">
+                <button class="btn btn-tema py-2" onclick="gerarGradeMapeamento(true)">
+                  <i class="bi bi-layout-wtf me-1"></i>Montar Sala
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-4" id="cardSalaAula" style="display: none;">
+            <div class="card-header-custom">
+              <div>
+                <h5 class="fw-bold m-0 text-dark" id="tituloMapaTurma">
+                  <i class="bi bi-person-bounding-box text-success me-2"></i>Planta da Sala de Aula
+                </h5>
+                <small class="text-muted" id="subtituloUltimoSave">Clique na lista suspensa abaixo de cada quadro 3x4 para escolher o aluno.</small>
+              </div>
+              <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-outline-primary btn-sm fw-bold px-3" onclick="preencherOrdemAlfabetica()">
+                  <i class="bi bi-sort-alpha-down me-1"></i>Auto-Preencher (A-Z)
+                </button>
+                <button class="btn btn-tema btn-sm fw-bold px-3" onclick="salvarMapeamentoNoBanco()">
+                  <i class="bi bi-cloud-arrow-up-fill me-1"></i>Salvar Mapeamento
+                </button>
+                <button class="btn btn-danger btn-sm fw-bold px-3" onclick="baixarPdfMapeamentoAtual()">
+                  <i class="bi bi-file-earmark-pdf-fill me-1"></i>Baixar PDF 3x4
+                </button>
+              </div>
+            </div>
+
+            <div class="frente-sala-bar">
+              <i class="bi bi-easel2-fill me-2"></i>QUADRO BRANCO / MESA DO PROFESSOR (FRENTE DA SALA)
+            </div>
+
+            <div class="sala-scroll-wrapper">
+              <div id="containerCabecalhoFilas" class="grid-mapeamento mb-2"></div>
+              <div id="containerGradeCarteiras" class="grid-mapeamento"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 2: MAPEAMENTOS SALVOS -->
+      <div class="tab-pane fade" id="abaMapeamentosSalvos" role="tabpanel">
+        <div class="card p-4">
+          <div class="card-header-custom">
+            <div>
+              <h5 class="fw-bold m-0 text-dark">
+                <i class="bi bi-journal-check text-success me-2"></i>Mapeamentos de Sala Registrados (Disponível Offline)
+              </h5>
+              <small class="text-muted">Todos os professores podem consultar o mapa da turma na tela ou baixar o PDF com fotos 3x4 mesmo sem conexão com a internet.</small>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm fw-semibold" onclick="sincronizarTodosMapeamentosDoServidor(true)">
+              <i class="bi bi-arrow-clockwise me-1"></i>Sincronizar Agora
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Série / Turma</th>
+                  <th>Professor PDT</th>
+                  <th class="text-center">Alunos no Mapa</th>
+                  <th>Última Atualização</th>
+                  <th>Atualizado por</th>
+                  <th class="text-end" style="width: 240px;">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyMapeamentosSalvos">
+                <tr><td colspan="6" class="text-center text-muted py-4">Carregando mapeamentos...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card p-4" id="cardVisualizadorConsulta" style="display: none;">
+          <div class="card-header-custom">
+            <div>
+              <h5 class="fw-bold m-0 text-dark" id="tituloVisualizadorConsulta">
+                <i class="bi bi-eye-fill text-primary me-2"></i>Visualização do Mapa da Turma
+              </h5>
+              <small class="text-muted" id="subtituloVisualizadorConsulta">-</small>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-danger btn-sm fw-bold px-3" id="btnPdfVisualizador">
+                <i class="bi bi-file-earmark-pdf-fill me-1"></i>Baixar PDF 3x4 desta Turma
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('cardVisualizadorConsulta').style.display='none'">
+                <i class="bi bi-x-lg"></i> Fechar
+              </button>
+            </div>
+          </div>
+
+          <div class="frente-sala-bar">
+            <i class="bi bi-easel2-fill me-2"></i>QUADRO BRANCO / MESA DO PROFESSOR (FRENTE DA SALA)
+          </div>
+
+          <div class="sala-scroll-wrapper">
+            <div id="headerFilasConsulta" class="grid-mapeamento mb-2"></div>
+            <div id="gradeCarteirasConsulta" class="grid-mapeamento"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer-custom">
+    <strong>&copy; <span id="anoAtual"></span> EEMTI José Cláudio.</strong> Todos os direitos reservados.
+  </footer>
+
+  <script>
+    const _fetchOriginal = window.fetch;
+    window.fetch = function(url, options) {
+      if (options && options.method === 'POST' && typeof options.body === 'string') {
+        try {
+          const uLog = JSON.parse(localStorage.getItem('usuarioLogado') || '{}');
+          const nomeAutor = (uLog.nome || uLog.usuario?.nome || uLog.col1 || "").toUpperCase();
+          let bodyObj = JSON.parse(options.body);
+          if (nomeAutor && !bodyObj.usuarioLogado) bodyObj.usuarioLogado = nomeAutor;
+          options.body = JSON.stringify(bodyObj);
+        } catch (e) {}
+      }
+      return _fetchOriginal(url, options);
+    };
+
+    document.getElementById('anoAtual').innerText = new Date().getFullYear();
+
+    const API_URL = "https://script.google.com/macros/s/AKfycbxhZJhGbY30e0s3WLolHP6-4PrfBlcECCKL3lyV7EIdpVhgjvCJEronL1EhcaQ_-7c/exec";
+    const AVATAR_PADRAO = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+    let nomeUsuarioLogado = "";
+    let perfilUsuarioLogado = "";
+    let isGestaoEscolar = false;
+    let turmasDoPdtLogado = [];
+    var todosAlunosEscola = [];
+    var alunosDaSerieAtual = [];
+    let mapaPdtPorSerie = {};
+    let posicoesOcupadas = {};
+    let cacheMapeamentosGlobal = {};
+
+    function temFotoValida(fotoStr) {
+      if (!fotoStr) return false;
+      const f = String(fotoStr).trim();
+      return (f.startsWith('data:image') || f.includes('http')) && !f.includes('149071.png');
+    }
+
+    // Localiza o registro do aluno com foto em qualquer lista disponível (Turma, Escola ou Caches Locais)
+    function buscarObjetoAlunoComFoto(nomeAluno, serieAlvo) {
+      const nBusca = String(nomeAluno || "").trim().toUpperCase();
+      const sBusca = String(serieAlvo || "").trim().toUpperCase();
+      if (!nBusca) return null;
+
+      let cands = [];
+      if (Array.isArray(alunosDaSerieAtual)) cands = cands.concat(alunosDaSerieAtual);
+      if (Array.isArray(todosAlunosEscola)) cands = cands.concat(todosAlunosEscola);
+
+      try {
+        const c1 = JSON.parse(localStorage.getItem('cache_alunos_mapa_v2') || '[]');
+        const c2 = JSON.parse(localStorage.getItem('cache_alunos_rac') || '[]');
+        cands = cands.concat(c1, c2);
+      } catch (e) {}
+
+      // 1º Prioridade: Mesmo Nome + Mesma Série + Com Foto Válida
+      let achou = cands.find(a =>
+        String(a.nome || "").trim().toUpperCase() === nBusca &&
+        (!sBusca || String(a.serie || "").trim().toUpperCase() === sBusca) &&
+        temFotoValida(a.foto)
+      );
+      if (achou) return achou;
+
+      // 2º Prioridade: Mesmo Nome em qualquer série + Com Foto Válida
+      achou = cands.find(a =>
+        String(a.nome || "").trim().toUpperCase() === nBusca &&
+        temFotoValida(a.foto)
+      );
+      if (achou) return achou;
+
+      // 3º Fallback: Mesmo Nome mesmo sem foto
+      return cands.find(a => String(a.nome || "").trim().toUpperCase() === nBusca) || null;
+    }
+
+    function atualizarStatusRedeUI() {
+      const badge = document.getElementById('statusConexaoBadge');
+      if (!badge) return;
+      if (navigator.onLine) {
+        badge.className = "badge bg-success-subtle text-success border border-success-subtle px-3 py-2";
+        badge.innerHTML = `<i class="bi bi-wifi me-1"></i>Online`;
+      } else {
+        badge.className = "badge bg-warning-subtle text-dark border border-warning px-3 py-2";
+        badge.innerHTML = `<i class="bi bi-wifi-off me-1"></i>Modo Offline Ativo`;
+      }
+    }
+
+    window.addEventListener('online', async () => {
+      atualizarStatusRedeUI();
+      await sincronizarFilaOfflinePendente();
+      await sincronizarTodosMapeamentosDoServidor(false);
+    });
+    window.addEventListener('offline', atualizarStatusRedeUI);
+
+    function compararNomesFlexivel(nomeA, nomeB) {
+      let a = String(nomeA || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toUpperCase();
+      let b = String(nomeB || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toUpperCase();
+      if (!a || !b) return false;
+      return a === b || a.includes(b) || b.includes(a);
+    }
+
+    window.onload = async function() {
+      atualizarStatusRedeUI();
+
+      if (usuarioLogado) {
+        nomeUsuarioLogado = String(usuarioLogado.nome || usuarioLogado.usuario?.nome || usuarioLogado.col1 || "Usuário").trim().toUpperCase();
+        perfilUsuarioLogado = String(usuarioLogado.permissao || usuarioLogado.usuario?.role || "").trim().toUpperCase();
+        isGestaoEscolar = (perfilUsuarioLogado === 'ADMINISTRADOR' || perfilUsuarioLogado === 'DIREÇÃO' || perfilUsuarioLogado === 'DIRECAO');
+        const elUser = document.getElementById('nomeUsuarioUi');
+        if (elUser) elUser.innerHTML = `<i class="bi bi-person-circle me-1"></i>${nomeUsuarioLogado}`;
+      }
+
+      carregarCachesLocais();
+
+      Swal.fire({
+        title: 'Sincronizando Mapeamentos e Fotos 3x4...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      if (navigator.onLine) {
+        await sincronizarFilaOfflinePendente();
+        try {
+          const [resAlunos, resPdt, resSeries] = await Promise.all([
+            fetch(API_URL + "?v=" + new Date().getTime(), { method: 'POST', body: JSON.stringify({ action: 'getFiltrosOcorrencias' }) }).then(r => r.json()).catch(() => null),
+            fetch(API_URL + "?v=" + new Date().getTime(), { method: 'POST', body: JSON.stringify({ action: 'listarPDT' }) }).then(r => r.json()).catch(() => null),
+            fetch(API_URL + "?v=" + new Date().getTime(), { method: 'POST', body: JSON.stringify({ action: 'listarConfig', tipo: 'SERIE' }) }).then(r => r.json()).catch(() => null)
+          ]);
+
+          if (resAlunos && Array.isArray(resAlunos.alunos)) {
+            todosAlunosEscola = resAlunos.alunos;
+            localStorage.setItem('cache_alunos_mapa_v2', JSON.stringify(todosAlunosEscola));
+            localStorage.setItem('cache_alunos_rac', JSON.stringify(todosAlunosEscola));
+          }
+
+          if (resPdt && Array.isArray(resPdt.lista)) {
+            mapaPdtPorSerie = {};
+            resPdt.lista.forEach(item => {
+              if (item.serie) {
+                mapaPdtPorSerie[String(item.serie).trim().toUpperCase()] = String(item.professor || "Não atribuído").trim().toUpperCase();
+              }
+            });
+            localStorage.setItem('cache_pdt_mapa_v2', JSON.stringify(mapaPdtPorSerie));
+          }
+
+          if (resSeries && Array.isArray(resSeries.lista)) {
+            localStorage.setItem('cache_series_mapa_v2', JSON.stringify(resSeries.lista));
+          }
+
+          await sincronizarTodosMapeamentosDoServidor(false);
+        } catch (e) {}
+      }
+
+      configurarPermissoesPdtETurmas();
+      renderizarTabelaMapeamentosSalvos();
+      Swal.close();
+    };
+
+    function carregarCachesLocais() {
+      try {
+        const cAlunos = localStorage.getItem('cache_alunos_mapa_v2') || localStorage.getItem('cache_alunos_rac');
+        if (cAlunos) todosAlunosEscola = JSON.parse(cAlunos);
+        const cPdt = localStorage.getItem('cache_pdt_mapa_v2');
+        if (cPdt) mapaPdtPorSerie = JSON.parse(cPdt);
+        const cMapas = localStorage.getItem('cache_todos_mapeamentos_offline');
+        if (cMapas) cacheMapeamentosGlobal = JSON.parse(cMapas);
+      } catch (e) {}
+    }
+
+    function salvarCacheGlobalMapeamentos() {
+      try {
+        localStorage.setItem('cache_todos_mapeamentos_offline', JSON.stringify(cacheMapeamentosGlobal));
+      } catch (e) {}
+    }
+
+    async function sincronizarTodosMapeamentosDoServidor(exibirFeedback) {
+      if (!navigator.onLine) {
+        if (exibirFeedback) Swal.fire('Modo Offline', 'Exibindo os mapeamentos salvos no aparelho.', 'info');
+        renderizarTabelaMapeamentosSalvos();
+        return;
+      }
+
+      if (exibirFeedback) {
+        Swal.fire({ title: 'Atualizando lista...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      }
+
+      try {
+        const resLista = await fetch(API_URL + "?v=" + new Date().getTime(), {
+          method: 'POST',
+          body: JSON.stringify({ action: 'listarTodosMapeamentos' })
+        }).then(r => r.json()).catch(() => null);
+
+        if (resLista && resLista.success && Array.isArray(resLista.lista)) {
+          resLista.lista.forEach(item => {
+            const s = String(item.serie || "").trim().toUpperCase();
+            if (!s) return;
+            cacheMapeamentosGlobal[s] = {
+              serie: s,
+              pdt: item.pdt || mapaPdtPorSerie[s] || "Não atribuído",
+              colunas: Number(item.colunas) || 5,
+              linhas: Number(item.linhas) || 7,
+              posicoes: item.posicoes || {},
+              ultimaAtualizacao: item.ultimaAtualizacao || "-",
+              atualizadoPor: item.atualizadoPor || "-"
+            };
+          });
+        }
+        salvarCacheGlobalMapeamentos();
+      } catch (e) {}
+
+      if (exibirFeedback) Swal.close();
+      renderizarTabelaMapeamentosSalvos();
+    }
+
+    function formatarDataHoraExibicao(valor) {
+      if (!valor || valor === "-") return "-";
+      let s = String(valor).trim();
+      if (s.includes("T") && s.includes("Z")) {
+        let d = new Date(s);
+        if (!isNaN(d.getTime())) return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR');
+      }
+      return s;
+    }
+
+    function configurarPermissoesPdtETurmas() {
+      let todasSeries = new Set(Object.keys(mapaPdtPorSerie));
+      todosAlunosEscola.forEach(a => {
+        let s = String(a.serie || "").trim().toUpperCase();
+        if (s && s !== "TRANSFERIDO") todasSeries.add(s);
+      });
+
+      const listaSeriesOrdenada = Array.from(todasSeries).sort();
+
+      turmasDoPdtLogado = listaSeriesOrdenada.filter(serie => {
+        const pdtDaSerie = mapaPdtPorSerie[serie] || "";
+        return compararNomesFlexivel(pdtDaSerie, nomeUsuarioLogado);
+      });
+
+      const selSerie = document.getElementById('selectSerie');
+
+      if (isGestaoEscolar) {
+        let html = '<option value="">Selecione a Série / Turma...</option>';
+        listaSeriesOrdenada.forEach(s => { html += `<option value="${s}">${s}</option>`; });
+        selSerie.innerHTML = html;
+        selSerie.disabled = false;
+        document.getElementById('textoAjudaPdt').innerText = "Perfil Gestão/Admin: você pode selecionar e editar qualquer turma.";
+        if (listaSeriesOrdenada.length > 0) {
+          selSerie.value = listaSeriesOrdenada[0];
+          aoSelecionarSerie();
+        }
+      } else if (turmasDoPdtLogado.length > 0) {
+        let html = '';
+        turmasDoPdtLogado.forEach(s => { html += `<option value="${s}">${s}</option>`; });
+        selSerie.innerHTML = html;
+        selSerie.value = turmasDoPdtLogado[0];
+        selSerie.disabled = (turmasDoPdtLogado.length === 1);
+        document.getElementById('textoAjudaPdt').innerText = "Sua turma e seu nome de PDT foram preenchidos automaticamente.";
+        aoSelecionarSerie();
+      } else {
+        document.getElementById('areaEdicaoPdt').style.display = 'none';
+        document.getElementById('cardBloqueioNaoPdt').style.display = 'block';
+        document.getElementById('lblNomeProfBloqueio').innerText = nomeUsuarioLogado;
+        irParaAbaSalvos();
+      }
+    }
+
+    function irParaAbaSalvos() {
+      const btnSalvos = document.getElementById('tab-salvos-btn');
+      if (btnSalvos) {
+        bootstrap.Tab.getOrCreateInstance(btnSalvos).show();
+        renderizarTabelaMapeamentosSalvos();
+      }
+    }
+
+    async function aoSelecionarSerie() {
+      const serie = document.getElementById('selectSerie').value;
+      const inputPdt = document.getElementById('inputPdtAuto');
+
+      if (!serie) {
+        inputPdt.value = "";
+        document.getElementById('cardSalaAula').style.display = 'none';
+        document.getElementById('btnLimparTudo').style.display = 'none';
+        return;
+      }
+
+      const pdt = mapaPdtPorSerie[serie.toUpperCase()] || "Não atribuído";
+      inputPdt.value = pdt;
+
+      // Se a lista de alunos da série ainda não tiver fotos em Base64, busca também via getAlunosParaEdicao
+      alunosDaSerieAtual = todosAlunosEscola
+        .filter(a => String(a.serie || "").trim().toUpperCase() === serie.toUpperCase())
+        .sort((a, b) => a.nome.localeCompare(b.nome));
+
+      posicoesOcupadas = {};
+
+      let carregouOnline = false;
+      if (navigator.onLine) {
+        try {
+          const resMapa = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'buscarMapeamentoSala', serie: serie })
+          }).then(r => r.json());
+
+          if (resMapa && resMapa.success && resMapa.encontrado && resMapa.dados) {
+            const d = resMapa.dados;
+            document.getElementById('selectColunas').value = d.colunas || 5;
+            document.getElementById('selectLinhas').value = d.linhas || 7;
+            posicoesOcupadas = d.posicoes || {};
+            const dtFormatada = formatarDataHoraExibicao(d.ultimaAtualizacao);
+
+            document.getElementById('subtituloUltimoSave').innerText =
+              `Última atualização: ${dtFormatada} por ${d.atualizadoPor || pdt}`;
+
+            cacheMapeamentosGlobal[serie] = {
+              serie: serie, pdt: pdt, colunas: Number(d.colunas) || 5, linhas: Number(d.linhas) || 7,
+              posicoes: posicoesOcupadas, ultimaAtualizacao: dtFormatada, atualizadoPor: d.atualizadoPor || pdt
+            };
+            salvarCacheGlobalMapeamentos();
+            carregouOnline = true;
+          }
+        } catch (e) {}
+      }
+
+      if (!carregouOnline) {
+        const salvoCache = cacheMapeamentosGlobal[serie] || JSON.parse(localStorage.getItem(`mapeamento_sala_${serie}`) || 'null');
+        if (salvoCache && salvoCache.posicoes && Object.keys(salvoCache.posicoes).length > 0) {
+          document.getElementById('selectColunas').value = salvoCache.colunas || 5;
+          document.getElementById('selectLinhas').value = salvoCache.linhas || 7;
+          posicoesOcupadas = salvoCache.posicoes || {};
+          document.getElementById('subtituloUltimoSave').innerText =
+            `Última atualização: ${salvoCache.ultimaAtualizacao || 'Salvo no dispositivo'} por ${salvoCache.atualizadoPor || pdt}`;
+        } else {
+          document.getElementById('subtituloUltimoSave').innerText = `Novo mapeamento — selecione os alunos abaixo de cada quadro 3x4.`;
+        }
+      }
+
+      gerarGradeMapeamento(true);
+    }
+
+    function gerarGradeMapeamento(manterAlocados) {
+      const serie = document.getElementById('selectSerie').value;
+      if (!serie) return;
+
+      const numColunas = parseInt(document.getElementById('selectColunas').value, 10) || 5;
+      const numLinhas = parseInt(document.getElementById('selectLinhas').value, 10) || 7;
+
+      if (!manterAlocados) posicoesOcupadas = {};
+
+      const pdt = document.getElementById('inputPdtAuto').value;
+      document.getElementById('tituloMapaTurma').innerHTML =
+        `<i class="bi bi-person-bounding-box text-success me-2"></i>Mapeamento: ${serie} <span class="badge bg-teal ms-2" style="background-color:#0f766e;">PDT: ${pdt}</span>`;
+
+      const containerHeaders = document.getElementById('containerCabecalhoFilas');
+      const containerGrade = document.getElementById('containerGradeCarteiras');
+
+      containerHeaders.style.gridTemplateColumns = `repeat(${numColunas}, minmax(155px, 1fr))`;
+      containerGrade.style.gridTemplateColumns = `repeat(${numColunas}, minmax(155px, 1fr))`;
+
+      let htmlHeader = '';
+      for (let c = 1; c <= numColunas; c++) {
+        htmlHeader += `<div class="header-fila"><i class="bi bi-distribute-vertical me-1"></i>FILA ${c}</div>`;
+      }
+      containerHeaders.innerHTML = htmlHeader;
+
+      let htmlCarteiras = '';
+      for (let l = 1; l <= numLinhas; l++) {
+        for (let c = 1; c <= numColunas; c++) {
+          const posKey = `F${c}-C${l}`;
+          htmlCarteiras += `
+            <div class="carteira-card" id="card_${posKey}">
+              <span class="carteira-badge-pos">Fila ${c} • ${l}ª Cart.</span>
+              <button type="button" class="btn-limpar-assento" onclick="removerAlunoDaCarteira('${posKey}')" title="Desocupar esta carteira">
+                <i class="bi bi-x-lg"></i>
+              </button>
+              <div class="moldura-3x4" id="moldura_${posKey}">
+                <div class="placeholder-3x4">
+                  <i class="bi bi-person-bounding-box"></i>
+                  Foto 3x4<br>Vazio
+                </div>
+              </div>
+              <select class="select-aluno-carteira" id="sel_${posKey}" onchange="aoEscolherAlunoNaCarteira('${posKey}', this)">
+                <option value="">-- Selecionar Aluno --</option>
+              </select>
+            </div>`;
+        }
+      }
+
+      containerGrade.innerHTML = htmlCarteiras;
+      document.getElementById('cardSalaAula').style.display = 'block';
+      document.getElementById('btnLimparTudo').style.display = 'inline-block';
+
+      atualizarInterfaceCarteiras();
+    }
+
+    function aoEscolherAlunoNaCarteira(posKey, selectEl) {
+      const alunoEscolhido = selectEl.value;
+      if (!alunoEscolhido) {
+        delete posicoesOcupadas[posKey];
+        salvarCacheLocal();
+        atualizarInterfaceCarteiras();
+        return;
+      }
+
+      for (const [outraPos, nomeOcupante] of Object.entries(posicoesOcupadas)) {
+        if (outraPos !== posKey && nomeOcupante === alunoEscolhido) {
+          const partes = outraPos.replace('F', '').split('-C');
+          selectEl.value = posicoesOcupadas[posKey] || "";
+          Swal.fire({
+            title: 'Aluno já Alocado!',
+            html: `O(a) aluno(a) <b>${alunoEscolhido}</b> já foi selecionado(a) na <b>Fila ${partes[0]} (${partes[1]}ª Carteira)</b>.<br><br>Escolha outro aluno ou remova-o da posição anterior primeiro.`,
+            icon: 'warning',
+            confirmButtonColor: '#0f766e'
+          });
+          return;
+        }
+      }
+
+      posicoesOcupadas[posKey] = alunoEscolhido;
+      salvarCacheLocal();
+      atualizarInterfaceCarteiras();
+    }
+
+    function removerAlunoDaCarteira(posKey) {
+      delete posicoesOcupadas[posKey];
+      salvarCacheLocal();
+      atualizarInterfaceCarteiras();
+    }
+
+    function atualizarInterfaceCarteiras() {
+      const serie = document.getElementById('selectSerie').value;
+      const numColunas = parseInt(document.getElementById('selectColunas').value, 10) || 5;
+      const numLinhas = parseInt(document.getElementById('selectLinhas').value, 10) || 7;
+
+      const mapaOndeEsta = {};
+      for (let l = 1; l <= numLinhas; l++) {
+        for (let c = 1; c <= numColunas; c++) {
+          const pk = `F${c}-C${l}`;
+          if (posicoesOcupadas[pk]) mapaOndeEsta[posicoesOcupadas[pk]] = `Fila ${c} - ${l}ª Cart.`;
+        }
+      }
+
+      for (let l = 1; l <= numLinhas; l++) {
+        for (let c = 1; c <= numColunas; c++) {
+          const posKey = `F${c}-C${l}`;
+          const cardEl = document.getElementById(`card_${posKey}`);
+          const molduraEl = document.getElementById(`moldura_${posKey}`);
+          const selectEl = document.getElementById(`sel_${posKey}`);
+          if (!cardEl || !molduraEl || !selectEl) continue;
+
+          const alunoAtual = posicoesOcupadas[posKey] || "";
+
+          let htmlOptions = '<option value="">-- Vazio --</option>';
+          alunosDaSerieAtual.forEach(al => {
+            const isSel = (al.nome === alunoAtual);
+            const jaAlocado = (!isSel && mapaOndeEsta[al.nome]);
+            htmlOptions += `<option value="${al.nome}" ${isSel ? 'selected' : ''}>${al.nome}${jaAlocado ? ` (✓ ${mapaOndeEsta[al.nome]})` : ''}</option>`;
+          });
+          selectEl.innerHTML = htmlOptions;
+
+          if (alunoAtual) {
+            cardEl.classList.add('ocupada');
+            const objAluno = buscarObjetoAlunoComFoto(alunoAtual, serie);
+            const urlFoto = (objAluno && temFotoValida(objAluno.foto)) ? objAluno.foto : AVATAR_PADRAO;
+            molduraEl.innerHTML = `<img src="${urlFoto}" data-nome-aluno="${alunoAtual}" alt="${alunoAtual}" crossorigin="anonymous" onerror="this.src='${AVATAR_PADRAO}'">`;
+          } else {
+            cardEl.classList.remove('ocupada');
+            molduraEl.innerHTML = `<div class="placeholder-3x4"><i class="bi bi-person-bounding-box"></i>Foto 3x4<br>Vazio</div>`;
+          }
+        }
+      }
+
+      const qtdAlocados = Object.keys(mapaOndeEsta).length;
+      document.getElementById('contadorAlocados').innerText = `${qtdAlocados} / ${alunosDaSerieAtual.length} Alunos da Turma Alocados`;
+    }
+
+    function preencherOrdemAlfabetica() {
+      const numColunas = parseInt(document.getElementById('selectColunas').value, 10) || 5;
+      const numLinhas = parseInt(document.getElementById('selectLinhas').value, 10) || 7;
+      posicoesOcupadas = {};
+      let idxAluno = 0;
+
+      for (let c = 1; c <= numColunas; c++) {
+        for (let l = 1; l <= numLinhas; l++) {
+          if (idxAluno < alunosDaSerieAtual.length) {
+            posicoesOcupadas[`F${c}-C${l}`] = alunosDaSerieAtual[idxAluno].nome;
+            idxAluno++;
+          }
+        }
+      }
+      salvarCacheLocal();
+      atualizarInterfaceCarteiras();
+    }
+
+    async function limparMapeamentoInteiro() {
+      const conf = await Swal.fire({
+        title: 'Limpar todas as carteiras?',
+        text: 'Isso removerá os alunos alocados na tela atual.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'Sim, limpar tudo',
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (conf.isConfirmed) {
+        posicoesOcupadas = {};
+        salvarCacheLocal();
+        atualizarInterfaceCarteiras();
+      }
+    }
+
+    function salvarCacheLocal() {
+      const serie = document.getElementById('selectSerie').value;
+      if (!serie) return;
+      const agoraStr = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR');
+      const obj = {
+        serie: serie,
+        pdt: document.getElementById('inputPdtAuto').value,
+        colunas: parseInt(document.getElementById('selectColunas').value, 10) || 5,
+        linhas: parseInt(document.getElementById('selectLinhas').value, 10) || 7,
+        posicoes: posicoesOcupadas,
+        ultimaAtualizacao: cacheMapeamentosGlobal[serie]?.ultimaAtualizacao || agoraStr,
+        atualizadoPor: cacheMapeamentosGlobal[serie]?.atualizadoPor || nomeUsuarioLogado
+      };
+      localStorage.setItem(`mapeamento_sala_${serie}`, JSON.stringify(obj));
+    }
+
+    async function salvarMapeamentoNoBanco() {
+      const serie = document.getElementById('selectSerie').value;
+      if (!serie) return;
+
+      const agoraStr = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR');
+      const dadosSalvar = {
+        serie: serie,
+        pdt: document.getElementById('inputPdtAuto').value,
+        colunas: parseInt(document.getElementById('selectColunas').value, 10) || 5,
+        linhas: parseInt(document.getElementById('selectLinhas').value, 10) || 7,
+        posicoes: posicoesOcupadas,
+        autor: nomeUsuarioLogado
+      };
+
+      cacheMapeamentosGlobal[serie] = { ...dadosSalvar, ultimaAtualizacao: agoraStr, atualizadoPor: nomeUsuarioLogado };
+      salvarCacheGlobalMapeamentos();
+      salvarCacheLocal();
+      renderizarTabelaMapeamentosSalvos();
+
+      if (!navigator.onLine) {
+        adicionarNaFilaOffline(dadosSalvar);
+        document.getElementById('subtituloUltimoSave').innerText = `Última atualização (Offline): ${agoraStr} por ${nomeUsuarioLogado}`;
+        return Swal.fire('Salvo no Modo Offline!', 'O mapeamento será enviado à planilha assim que a internet voltar.', 'info');
+      }
+
+      Swal.fire({ title: 'Salvando Mapeamento na Planilha...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'salvarMapeamentoSala', dados: dadosSalvar })
+        }).then(r => r.json());
+
+        if (res && res.success) {
+          const dtOficial = res.ultimaAtualizacao || agoraStr;
+          const autorOficial = res.atualizadoPor || nomeUsuarioLogado;
+          cacheMapeamentosGlobal[serie].ultimaAtualizacao = dtOficial;
+          cacheMapeamentosGlobal[serie].atualizadoPor = autorOficial;
+          salvarCacheGlobalMapeamentos();
+          renderizarTabelaMapeamentosSalvos();
+          document.getElementById('subtituloUltimoSave').innerText = `Última atualização: ${dtOficial} por ${autorOficial}`;
+          Swal.fire({ title: 'Salvo com Sucesso!', text: `Mapeamento gravado! Última atualização: ${dtOficial}`, icon: 'success', confirmButtonColor: '#0f766e' });
+        } else {
+          adicionarNaFilaOffline(dadosSalvar);
+          Swal.fire('Salvo Localmente', 'O mapa foi guardado no aparelho.', 'info');
+        }
+      } catch (e) {
+        adicionarNaFilaOffline(dadosSalvar);
+        Swal.fire('Salvo no Modo Offline', 'Sem conexão; o mapa foi salvo neste aparelho.', 'info');
+      }
+    }
+
+    function adicionarNaFilaOffline(dadosSalvar) {
+      try {
+        let fila = JSON.parse(localStorage.getItem('fila_offline_mapeamento') || '[]');
+        fila = fila.filter(item => item.serie !== dadosSalvar.serie);
+        fila.push(dadosSalvar);
+        localStorage.setItem('fila_offline_mapeamento', JSON.stringify(fila));
+      } catch (e) {}
+    }
+
+    async function sincronizarFilaOfflinePendente() {
+      if (!navigator.onLine) return;
+      try {
+        let fila = JSON.parse(localStorage.getItem('fila_offline_mapeamento') || '[]');
+        if (fila.length === 0) return;
+        for (let item of fila) {
+          await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'salvarMapeamentoSala', dados: item, usuarioLogado: item.autor }) });
+        }
+        localStorage.removeItem('fila_offline_mapeamento');
+      } catch (e) {}
+    }
+
+    function renderizarTabelaMapeamentosSalvos() {
+      const tbody = document.getElementById('tbodyMapeamentosSalvos');
+      if (!tbody) return;
+
+      Object.keys(mapaPdtPorSerie).forEach(s => {
+        if (!cacheMapeamentosGlobal[s]) {
+          cacheMapeamentosGlobal[s] = {
+            serie: s, pdt: mapaPdtPorSerie[s] || "Não atribuído", colunas: 5, linhas: 7,
+            posicoes: {}, ultimaAtualizacao: "Ainda não salvo", atualizadoPor: "-"
+          };
+        }
+      });
+
+      const listaSeries = Object.keys(cacheMapeamentosGlobal).sort();
+      if (listaSeries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Nenhum mapeamento encontrado.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      listaSeries.forEach(serie => {
+        const item = cacheMapeamentosGlobal[serie];
+        const qtdAlocados = Object.keys(item.posicoes || {}).length;
+        const dtExibicao = formatarDataHoraExibicao(item.ultimaAtualizacao);
+        const temMapa = qtdAlocados > 0 || (dtExibicao !== "-" && dtExibicao !== "Ainda não salvo");
+
+        const badgeData = temMapa
+          ? `<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="bi bi-clock-history me-1"></i>${dtExibicao}</span>`
+          : `<span class="badge bg-light text-muted border">Ainda não salvo</span>`;
+
+        const serieEscapada = serie.replace(/'/g, "\\'");
+
+        html += `
+          <tr>
+            <td class="fw-bold text-dark"><i class="bi bi-mortarboard-fill text-primary me-2"></i>${serie}</td>
+            <td class="fw-semibold text-secondary">${item.pdt || mapaPdtPorSerie[serie] || '-'}</td>
+            <td class="text-center"><span class="badge ${qtdAlocados > 0 ? 'bg-teal' : 'bg-secondary'}" style="${qtdAlocados > 0 ? 'background-color:#0f766e;' : ''}">${qtdAlocados} aluno(s)</span></td>
+            <td>${badgeData}</td>
+            <td class="small fw-semibold text-dark">${item.atualizadoPor || '-'}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-success fw-bold me-1" onclick="visualizarMapaNaAbaSalvos('${serieEscapada}')">
+                <i class="bi bi-eye-fill me-1"></i>Ver Sala
+              </button>
+              <button class="btn btn-sm btn-danger fw-bold" onclick="baixarPdfDaSerieSalva('${serieEscapada}')">
+                <i class="bi bi-file-earmark-pdf-fill me-1"></i>PDF
+              </button>
+            </td>
+          </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function visualizarMapaNaAbaSalvos(serie) {
+      const item = cacheMapeamentosGlobal[serie];
+      if (!item) return;
+
+      const numColunas = parseInt(item.colunas, 10) || 5;
+      const numLinhas = parseInt(item.linhas, 10) || 7;
+      const posicoes = item.posicoes || {};
+      const pdt = item.pdt || mapaPdtPorSerie[serie] || "Não atribuído";
+      const dtExibicao = formatarDataHoraExibicao(item.ultimaAtualizacao);
+
+      document.getElementById('tituloVisualizadorConsulta').innerHTML =
+        `<i class="bi bi-eye-fill text-success me-2"></i>Mapa da Sala: ${serie} <span class="badge ms-2" style="background-color:#0f766e;">PDT: ${pdt}</span>`;
+      document.getElementById('subtituloVisualizadorConsulta').innerText =
+        `Última atualização: ${dtExibicao} por ${item.atualizadoPor || '-'}`;
+
+      const btnPdf = document.getElementById('btnPdfVisualizador');
+      btnPdf.onclick = () => baixarPdfDaSerieSalva(serie);
+
+      const headerEl = document.getElementById('headerFilasConsulta');
+      const gradeEl = document.getElementById('gradeCarteirasConsulta');
+
+      headerEl.style.gridTemplateColumns = `repeat(${numColunas}, minmax(155px, 1fr))`;
+      gradeEl.style.gridTemplateColumns = `repeat(${numColunas}, minmax(155px, 1fr))`;
+
+      let htmlH = '';
+      for (let c = 1; c <= numColunas; c++) {
+        htmlH += `<div class="header-fila"><i class="bi bi-distribute-vertical me-1"></i>FILA ${c}</div>`;
+      }
+      headerEl.innerHTML = htmlH;
+
+      let htmlC = '';
+      for (let l = 1; l <= numLinhas; l++) {
+        for (let c = 1; c <= numColunas; c++) {
+          const posKey = `F${c}-C${l}`;
+          const nomeAluno = posicoes[posKey] || "";
+          const objAluno = buscarObjetoAlunoComFoto(nomeAluno, serie);
+          const urlFoto = (objAluno && temFotoValida(objAluno.foto)) ? objAluno.foto : AVATAR_PADRAO;
+
+          htmlC += `
+            <div class="carteira-card ${nomeAluno ? 'ocupada' : ''}">
+              <span class="carteira-badge-pos">Fila ${c} • ${l}ª Cart.</span>
+              <div class="moldura-3x4">
+                ${nomeAluno
+                  ? `<img src="${urlFoto}" data-nome-aluno="${nomeAluno}" alt="${nomeAluno}" crossorigin="anonymous" onerror="this.src='${AVATAR_PADRAO}'">`
+                  : `<div class="placeholder-3x4"><i class="bi bi-person-bounding-box"></i>Livre</div>`
+                }
+              </div>
+              <div class="nome-aluno-leitura">${nomeAluno || '<span class="text-muted fw-normal">Vazio</span>'}</div>
+            </div>`;
+        }
+      }
+      gradeEl.innerHTML = htmlC;
+
+      const cardVis = document.getElementById('cardVisualizadorConsulta');
+      cardVis.style.display = 'block';
+      cardVis.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // CONVERSOR UNIVERSAL DE FOTOS PARA O PDF (Suporta Base64, Links AppSheet via Proxy CORS e Canvas)
+    function converterQualquerFotoParaJpegPdf(urlOuBase64) {
+      return new Promise((resolve) => {
+        if (!urlOuBase64) return resolve(null);
+        let s = String(urlOuBase64).trim();
+        if (s.includes('149071.png')) return resolve(null);
+
+        function desenharNoCanvas3x4(imgSource) {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = function() {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = 180;
+              canvas.height = 240;
+              const ctx = canvas.getContext('2d');
+              ctx.fillStyle = "#ffffff";
+              ctx.fillRect(0, 0, 180, 240);
+              ctx.drawImage(img, 0, 0, 180, 240);
+              resolve(canvas.toDataURL('image/jpeg', 0.85));
+            } catch (err) {
+              resolve(s.startsWith('data:image') ? s : null);
+            }
+          };
+          img.onerror = function() {
+            resolve(null);
+          };
+          img.src = imgSource;
+        }
+
+        // 1. Se já for Base64 data:image, normaliza num canvas JPEG limpo para o jsPDF nunca recusar
+        if (s.startsWith('data:image')) {
+          return desenharNoCanvas3x4(s);
+        }
+
+        // 2. Se for um link externo (ex: AppSheet ou Drive), tenta primeiro via Proxy CORS de Imagem (wsrv.nl)
+        // pois o AppSheet bloqueia requisições XHR diretas do navegador!
+        if (s.startsWith('http://') || s.startsWith('https://')) {
+          const proxyUrl = "https://wsrv.nl/?url=" + encodeURIComponent(s) + "&w=180&h=240&fit=cover&output=jpg";
+          let xhr = new XMLHttpRequest();
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              let reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.onerror = () => desenharNoCanvas3x4(s);
+              reader.readAsDataURL(xhr.response);
+            } else {
+              desenharNoCanvas3x4(s);
+            }
+          };
+          xhr.onerror = function() {
+            desenharNoCanvas3x4(s);
+          };
+          xhr.open('GET', proxyUrl);
+          xhr.responseType = 'blob';
+          xhr.send();
+          return;
+        }
+
+        desenharNoCanvas3x4(s);
+      });
+    }
+
+    async function baixarPdfMapeamentoAtual() {
+      const serie = document.getElementById('selectSerie').value;
+      const pdt = document.getElementById('inputPdtAuto').value;
+      const numColunas = parseInt(document.getElementById('selectColunas').value, 10) || 5;
+      const numLinhas = parseInt(document.getElementById('selectLinhas').value, 10) || 7;
+      const dtAtual = cacheMapeamentosGlobal[serie]?.ultimaAtualizacao || new Date().toLocaleDateString('pt-BR');
+
+      await gerarDocumentoPdfMapeamento(serie, pdt, numColunas, numLinhas, posicoesOcupadas, dtAtual);
+    }
+
+    async function baixarPdfDaSerieSalva(serie) {
+      const item = cacheMapeamentosGlobal[serie];
+      if (!item) return;
+      await gerarDocumentoPdfMapeamento(
+        serie,
+        item.pdt || mapaPdtPorSerie[serie] || "Não atribuído",
+        parseInt(item.colunas, 10) || 5,
+        parseInt(item.linhas, 10) || 7,
+        item.posicoes || {},
+        formatarDataHoraExibicao(item.ultimaAtualizacao)
+      );
+    }
+
+    async function gerarDocumentoPdfMapeamento(serie, pdt, numColunas, numLinhas, mapaPosicoes, ultimaAtualizacaoStr) {
+      Swal.fire({
+        title: 'Gerando Mapa de Sala em PDF...',
+        text: 'Baixando e processando todas as fotos 3x4 da turma...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      try {
+        // Se estiver online, faz um refresh rápido das fotos da série direto do servidor para garantir fotos recém-salvas
+        if (navigator.onLine) {
+          try {
+            const resFrescos = await fetch(API_URL + "?v=" + new Date().getTime(), {
+              method: 'POST',
+              body: JSON.stringify({ action: 'getFiltrosOcorrencias' })
+            }).then(r => r.json()).catch(() => null);
+            if (resFrescos && Array.isArray(resFrescos.alunos)) {
+              todosAlunosEscola = resFrescos.alunos;
+              localStorage.setItem('cache_alunos_mapa_v2', JSON.stringify(todosAlunosEscola));
+            }
+          } catch (e) {}
+        }
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+
+        // Logo da Escola
+        try {
+          const imgLogoDom = document.querySelector('.logo-escola');
+          if (imgLogoDom && imgLogoDom.complete && imgLogoDom.naturalWidth > 0) {
+            const cLogo = document.createElement('canvas');
+            cLogo.width = imgLogoDom.naturalWidth;
+            cLogo.height = imgLogoDom.naturalHeight;
+            cLogo.getContext('2d').drawImage(imgLogoDom, 0, 0);
+            doc.addImage(cLogo.toDataURL('image/png'), 'PNG', 12, 7, 18, 18);
+          }
+        } catch (e) {}
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.setTextColor(15, 118, 110);
+        doc.text("MAPEAMENTO OFICIAL DE SALA DE AULA — E.E.M.T.I EEMTI JOSÉ CLÁUDIO EEMTI JOSÉ CLÁUDIO EEMTI JOSÉ CLÁUDIO", 33, 13);
+
+        doc.setFontSize(9.5);
+        doc.setTextColor(30, 41, 59);
+        doc.text(`Série / Turma: ${serie}   |   PDT: ${pdt}   |   Layout: ${numColunas} Filas x ${numLinhas} Carteiras`, 33, 19);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(100, 116, 139);
+        doc.text(`Última atualização: ${ultimaAtualizacaoStr || '-'}`, 285, 13, { align: 'right' });
+
+        doc.setFillColor(30, 41, 59);
+        doc.roundedRect(65, 22, 167, 6, 1.5, 1.5, 'F');
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(7.5);
+        doc.setTextColor(255, 255, 255);
+        doc.text("QUADRO BRANCO / MESA DO PROFESSOR (FRENTE DA SALA)", 148.5, 26, { align: 'center' });
+
+        const margemEsq = 12;
+        const larguraUtil = 273;
+        const topoGrade = 31;
+        const alturaUtil = 168;
+        const espacoX = 3;
+        const espacoY = 2.5;
+        const larguraCard = (larguraUtil - (espacoX * (numColunas - 1))) / numColunas;
+        const alturaCard = (alturaUtil - 7 - (espacoY * (numLinhas - 1))) / numLinhas;
+
+        for (let c = 1; c <= numColunas; c++) {
+          let xFila = margemEsq + (c - 1) * (larguraCard + espacoX);
+          doc.setFillColor(15, 118, 110);
+          doc.roundedRect(xFila, topoGrade, larguraCard, 5.5, 1, 1, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(7.5);
+          doc.setFont("helvetica", "bold");
+          doc.text(`FILA ${c}`, xFila + larguraCard / 2, topoGrade + 3.8, { align: 'center' });
+        }
+
+        // CARREGAMENTO PARALELO DE TODAS AS FOTOS 3X4 DOS ALUNOS ALOCADOS
+        const cacheFotos = {};
+        const nomesUnicosNoMapa = [...new Set(Object.values(mapaPosicoes).filter(Boolean))];
+
+        await Promise.all(nomesUnicosNoMapa.map(async (nomeAl) => {
+          const objAl = buscarObjetoAlunoComFoto(nomeAl, serie);
+          if (objAl && temFotoValida(objAl.foto)) {
+            const b64 = await converterQualquerFotoParaJpegPdf(objAl.foto);
+            if (b64) {
+              cacheFotos[nomeAl] = b64;
+            }
+          }
+        }));
+
+        const inicioYCarteiras = topoGrade + 7;
+        for (let l = 1; l <= numLinhas; l++) {
+          for (let c = 1; c <= numColunas; c++) {
+            const posKey = `F${c}-C${l}`;
+            const nomeOcupante = mapaPosicoes[posKey] || "";
+
+            const x = margemEsq + (c - 1) * (larguraCard + espacoX);
+            const y = inicioYCarteiras + (l - 1) * (alturaCard + espacoY);
+
+            if (nomeOcupante) {
+              doc.setDrawColor(15, 118, 110);
+              doc.setFillColor(240, 253, 244);
+            } else {
+              doc.setDrawColor(203, 213, 225);
+              doc.setFillColor(255, 255, 255);
+            }
+            doc.setLineWidth(0.35);
+            doc.roundedRect(x, y, larguraCard, alturaCard, 1.5, 1.5, 'FD');
+
+            doc.setFontSize(5.5);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(100, 116, 139);
+            doc.text(`${l}ª Cart.`, x + 1.5, y + 3);
+
+            const altFoto = Math.min(alturaCard - 7.5, 15);
+            const largFoto = altFoto * 0.75;
+            const xFoto = x + (larguraCard - largFoto) / 2;
+            const yFoto = y + 1.2;
+
+            doc.setDrawColor(180, 190, 200);
+            doc.setFillColor(248, 250, 252);
+            doc.rect(xFoto, yFoto, largFoto, altFoto, 'FD');
+
+            if (nomeOcupante && cacheFotos[nomeOcupante]) {
+              try {
+                doc.addImage(cacheFotos[nomeOcupante], 'JPEG', xFoto + 0.2, yFoto + 0.2, largFoto - 0.4, altFoto - 0.4);
+              } catch (e) {
+                try {
+                  doc.addImage(cacheFotos[nomeOcupante], 'PNG', xFoto + 0.2, yFoto + 0.2, largFoto - 0.4, altFoto - 0.4);
+                } catch (e2) {}
+              }
+            } else if (nomeOcupante) {
+              doc.setFontSize(5);
+              doc.setTextColor(15, 118, 110);
+              doc.text("3x4", xFoto + largFoto / 2, yFoto + altFoto / 2 + 1, { align: 'center' });
+            }
+
+            doc.setFontSize(5.8);
+            doc.setFont("helvetica", nomeOcupante ? "bold" : "normal");
+            doc.setTextColor(nomeOcupante ? 15 : 160, nomeOcupante ? 23 : 174, nomeOcupante ? 42 : 192);
+
+            const textoNome = nomeOcupante || "LIVRE";
+            const linhasNome = doc.splitTextToSize(textoNome, larguraCard - 2);
+            doc.text(linhasNome.slice(0, 2), x + larguraCard / 2, yFoto + altFoto + 2.5, { align: 'center' });
+          }
+        }
+
+        Swal.close();
+        doc.save(`Mapeamento_Sala_${serie.replace(/\s+/g, '_')}.pdf`);
+      } catch (err) {
+        console.error(err);
+        Swal.close();
+        Swal.fire('Erro', 'Não foi possível gerar o PDF do mapeamento.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta name="theme-color" content="#0f766e">
+<link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Portal Escolar Integrado</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
+  <style>
+    :root {
+      --primary-color: #0f766e;
+      --primary-hover: #0d5e56;
+      --bg-light: #f8fafc;
+    }
+    body {
+      background-color: var(--bg-light);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+    }
+    
+    /* Barra Superior */
+    .top-bar {
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 0.85rem;
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    }
+    .top-bar img {
+      height: 28px;
+      mix-blend-mode: multiply; /* Remove o fundo branco da imagem */
+      background-color: transparent;
+      object-fit: contain;
+    }
+    
+    /* Área de Conteúdo */
+    .login-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    .brand-logo {
+      width: 100px;
+      height: auto;
+      margin-bottom: 16px;
+      mix-blend-mode: multiply; /* Remove o fundo branco da imagem */
+      background-color: transparent;
+      object-fit: contain;
+    }
+    .brand-title {
+      font-weight: 700;
+      color: #1e293b;
+      font-size: 1.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+      text-align: center;
+    }
+    .brand-subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    
+    /* Card de Login */
+    .login-card {
+      background-color: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      width: 100%;
+      max-width: 440px;
+      padding: 36px;
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+    .login-header {
+      font-weight: 700;
+      font-size: 1.45rem;
+      text-align: center;
+      margin-bottom: 28px;
+      color: #0f172a;
+    }
+    .form-label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #475569;
+      margin-bottom: 6px;
+    }
+    .input-group {
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      background-color: #f8fafc;
+      transition: all 0.2s ease;
+    }
+    .input-group:focus-within {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+      background-color: white;
+    }
+    .input-group-text {
+      background-color: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 1.1rem;
+      padding-left: 14px;
+      padding-right: 8px;
+    }
+    .form-control {
+      background-color: transparent;
+      border: none;
+      font-size: 0.95rem;
+      padding: 12px 12px 12px 4px;
+    }
+    .form-control:focus {
+      background-color: transparent;
+      box-shadow: none;
+      border: none;
+    }
+    .btn-toggle-pass {
+      background-color: transparent;
+      border: none;
+      color: #64748b;
+      padding-right: 14px;
+      cursor: pointer;
+    }
+    
+    /* Links e Textos Inferiores */
+    .custom-link {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .custom-link:hover {
+      text-decoration: underline;
+    }
+    .primeiro-acesso {
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+    
+    /* Botão */
+    .btn-login {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      color: white;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 12px;
+      width: 100%;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .btn-login:hover {
+      background-color: var(--primary-hover);
+      border-color: var(--primary-hover);
+      color: white;
+      transform: translateY(-1px);
+    }
+    
+    /* Rodapé */
+    footer {
+      background-color: var(--primary-color);
+      color: white;
+      text-align: center;
+      padding: 16px 10px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra Superior -->
+  <div class="top-bar">
+    <div id="data-atual" class="fw-medium"></div>
+    <div class="d-flex align-items-center gap-2">
+      <img src="LOGO-removebg-preview.png" alt="EEMTI ANP" onerror="this.style.display='none'">
+      <span class="fw-bold d-none d-sm-inline">EEMTI JOSÉ CLÁUDIO</span>
+    </div>
+  </div>
+
+  <!-- Container Principal -->
+  <div class="login-container">
+    <img class="brand-logo" src="LOGO-removebg-preview.png" alt="Brasão da Escola" onerror="this.src='https://placehold.co/100?text=EEMTI'">
+    <div class="brand-title">EEMTI José Cláudio</div>
+    <div class="brand-subtitle">Portal Escolar Integrado</div>
+
+    <div class="login-card">
+      <div class="login-header">Login</div>
+      
+      <form id="formLogin">
+        
+        <!-- E-mail -->
+        <div class="mb-3">
+          <label for="emailLogin" class="form-label">E-mail Cadastrado*:</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+            <input type="email" class="form-control" id="emailLogin" placeholder="seu.email@escola.com" required>
+          </div>
+        </div>
+
+        <!-- Senha -->
+        <div class="mb-3">
+          <label for="senhaLogin" class="form-label">Senha*:</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" class="form-control" id="senhaLogin" placeholder="••••••••" required>
+            <button type="button" class="btn-toggle-pass" id="togglePassword">
+              <i class="bi bi-eye-slash" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Opções Extras -->
+        <div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+          <a onclick="iniciarPrimeiroAcesso()" class="custom-link primeiro-acesso">Primeiro Acesso / Criar Senha</a>
+          <a onclick="abrirRecuperacao()" class="custom-link">Esqueci minha senha</a>
+        </div>
+
+        <div class="text-center text-muted mb-3" style="font-size: 0.75rem;">
+          *Campos Obrigatórios
+        </div>
+
+        <!-- Botão -->
+        <button type="submit" class="btn btn-login w-100 py-2 fw-bold shadow-sm">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <footer>
+    <div>© 2026 EEMTI José Cláudio | Todos os direitos reservados.</div>
+  </footer>
+
+  <!-- SCRIPT EXATAMENTE COM A SUA LÓGICA -->
+  <script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const senhaLogin = document.querySelector('#senhaLogin');
+    const eyeIcon = document.querySelector('#eyeIcon');
+
+    togglePassword.addEventListener('click', function () {
+      const type = senhaLogin.getAttribute('type') === 'password' ? 'text' : 'password';
+      senhaLogin.setAttribute('type', type);
+      eyeIcon.classList.toggle('bi-eye');
+      eyeIcon.classList.toggle('bi-eye-slash');
+    });
+
+    function atualizarData() {
+      const opcoes = { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long' };
+      const dataFormatada = new Date().toLocaleDateString('pt-BR', opcoes);
+      document.getElementById('data-atual').innerText = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
+    }
+    atualizarData();
+
+    const API_URL = "https://script.google.com/macros/s/AKfycbxhZJhGbY30e0s3WLolHP6-4PrfBlcECCKL3lyV7EIdpVhgjvCJEronL1EhcaQ_-7c/exec";
+
+    // Submeter Login
+    document.getElementById('formLogin').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('emailLogin').value.trim();
+      const senha = document.getElementById('senhaLogin').value.trim();
+
+      Swal.fire({ title: 'A aceder...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'fazerLogin', email, senha })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          localStorage.setItem('usuarioLogado', JSON.stringify(data));
+          Swal.fire({
+            title: `Bem-vindo, ${data.nome}!`,
+            text: `Perfil: ${data.permissao}`,
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+          }).then(() => {
+            window.location.href = 'index.html';
+          });
+        } else {
+          Swal.fire('Atenção', data.error, 'warning');
+        }
+      } catch (err) {
+        Swal.fire('Erro', 'Falha ao conectar com o servidor.', 'error');
+      }
+    });
+
+    // Fluxo de Primeiro Acesso
+    async function iniciarPrimeiroAcesso() {
+      const { value: email } = await Swal.fire({
+        title: 'Criar Senha (Primeiro Acesso)',
+        text: 'Insira o seu E-mail previamente cadastrado pelo Administrador:',
+        input: 'email',
+        inputPlaceholder: 'seu.email@escola.com',
+        confirmButtonColor: '#0f766e',
+        confirmButtonText: 'Verificar E-mail',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar',
+        allowOutsideClick: false
+      });
+
+      if (email) {
+        Swal.fire({ title: 'A validar...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'validarPrimeiroAcesso', email })
+          });
+          const resp = await res.json();
+
+          if (resp.success) {
+            const { value: novaSenha } = await Swal.fire({
+              title: 'Definir Nova Senha',
+              input: 'password',
+              inputPlaceholder: 'Digite a sua nova senha',
+              confirmButtonColor: '#0f766e',
+              confirmButtonText: 'Guardar Senha',
+              showCancelButton: true,
+              cancelButtonText: 'Cancelar'
+            });
+
+            if (novaSenha) {
+              Swal.fire({ title: 'A guardar...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+              const resSalvar = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'salvarPrimeiroAcesso', email, novaSenha })
+              });
+              const respSalvar = await resSalvar.json();
+              
+              if (respSalvar.success) {
+                Swal.fire('Sucesso!', respSalvar.msg, 'success');
+              } else {
+                Swal.fire('Erro', respSalvar.error, 'error');
+              }
+            }
+          } else {
+            Swal.fire('Acesso Negado', resp.error, 'error');
+          }
+        } catch (e) {
+          Swal.fire('Erro', 'Não foi possível validar os dados.', 'error');
+        }
+      }
+    }
+
+    // Fluxo de Recuperação de Senha
+    async function abrirRecuperacao() {
+      const { value: email } = await Swal.fire({
+        title: 'Recuperar Senha',
+        text: 'Insira o seu e-mail cadastrado no sistema:',
+        input: 'email',
+        inputPlaceholder: 'seu.email@escola.com',
+        confirmButtonColor: '#0f766e',
+        confirmButtonText: 'Enviar Código',
+        showCancelButton: true,
+        cancelButtonText: 'Cancelar'
+      });
+
+      if (email) {
+        Swal.fire({ title: 'A enviar e-mail...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'recuperarSenha', contato: email })
+          });
+          const resp = await res.json();
+
+          if (resp.success) {
+            const { value: codigo } = await Swal.fire({
+              title: 'Código Enviado!',
+              text: 'Verifique a sua caixa de entrada (ou spam) e digite o código de 6 dígitos:',
+              input: 'text',
+              inputPlaceholder: 'Ex: 123456',
+              confirmButtonColor: '#0f766e',
+              confirmButtonText: 'Validar Código',
+              showCancelButton: true,
+              cancelButtonText: 'Cancelar'
+            });
+
+            if (codigo) {
+               Swal.fire({ title: 'A validar código...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+               
+               const resCod = await fetch(API_URL, {
+                 method: 'POST',
+                 body: JSON.stringify({ action: 'validarCodigoRecuperacao', email: email, codigo: codigo })
+               });
+               const respCod = await resCod.json();
+
+               if (respCod.success) {
+                 const { value: novaSenha } = await Swal.fire({
+                   title: 'Criar Nova Senha',
+                   text: 'Digite a sua nova senha de acesso:',
+                   input: 'password',
+                   inputPlaceholder: 'Nova senha',
+                   confirmButtonColor: '#0f766e',
+                   confirmButtonText: 'Guardar Nova Senha',
+                   showCancelButton: true,
+                   cancelButtonText: 'Cancelar'
+                 });
+
+                 if (novaSenha) {
+                    Swal.fire({ title: 'A guardar nova senha...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    
+                    const resSalvar = await fetch(API_URL, {
+                      method: 'POST',
+                      body: JSON.stringify({ action: 'salvarNovaSenhaRecuperacao', email: email, codigo: codigo, novaSenha: novaSenha })
+                    });
+                    const respSalvar = await resSalvar.json();
+                    
+                    if (respSalvar.success) {
+                      Swal.fire('Sucesso!', respSalvar.msg, 'success');
+                    } else {
+                      Swal.fire('Erro', respSalvar.error, 'error');
+                    }
+                 }
+               } else {
+                 Swal.fire('Código Inválido', respCod.error, 'error');
+               }
+            }
+          } else {
+            Swal.fire('Não encontrado', resp.error, 'error');
+          }
+        } catch (e) {
+          Swal.fire('Erro', 'Falha na comunicação com o servidor.', 'error');
+        }
+      }
+    }
+  </script>
+</body>
+</html>
